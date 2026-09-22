@@ -1,0 +1,79 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #1a1a1a;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+}
+
+#info-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 250px;
+    background: rgba(20, 40, 20, 0.85);
+    border: 1px solid #4caf50;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s;
+}
+
+#info-panel.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#info-panel h2 {
+    margin-top: 0;
+    color: #81c784;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #4caf50;
+    padding-bottom: 5px;
+}
+
+#controls-panel {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(30, 30, 30, 0.9);
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+#controls-panel h3 {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    text-align: center;
+    color: #aed581;
+}
+
+button {
+    background-color: #388e3c;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+button:hover { background-color: #4caf50; }
+button:active { background-color: #2e7d32; }
+
+.slider-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+canvas {
+    display: block;
+}
