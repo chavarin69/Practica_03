@@ -1,6 +1,6 @@
 # Práctica 03 - Plantas 3D: Simulador de Agave Azul
 
-**Autor:** [Tu Nombre]  
+**Autor:** Chavarin & Godinez  
 **Materia:** Bioinformática y Biología Computacional Avanzados
 
 ## Descripción del Proyecto
