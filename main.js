@@ -1,15 +1,21 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // ==========================================
-// 1. CONFIGURACIÓN BÁSICA
+// 1. ESCENA, CÁMARA Y RENDERER
 // ==========================================
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x222831);
+
+// Definimos los colores del cielo para la transición (Día a Azul Rey Obscuro)
+const colorDia = new THREE.Color(0x87CEEB);
+const colorNoche = new THREE.Color(0x0a1931); // Azul rey obscuro / nocturno
+
+// Inicializamos el fondo con el color de día
+scene.background = colorDia; 
+document.body.style.backgroundColor = '#' + colorDia.getHexString();
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-const initialCameraPos = new THREE.Vector3(0, 4, 10);
+const initialCameraPos = new THREE.Vector3(0, 8, 15);
 camera.position.copy(initialCameraPos);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -18,8 +24,8 @@ renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 2, 0);
 controls.enableDamping = true;
+controls.target.set(0, 3, 0);
 
 // ==========================================
 // 2. ILUMINACIÓN
@@ -28,129 +34,115 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-dirLight.position.set(5, 10, 5);
+dirLight.position.set(10, 15, 10);
 dirLight.castShadow = true;
 scene.add(dirLight);
 
 // ==========================================
-// 3. CONSTRUCCIÓN DE LA PLANTA Y MODELOS
+// 3. CONSTRUCCIÓN DE LA PLANTA (JERARQUÍA)
 // ==========================================
 const interactableObjects = [];
-const leavesArray = []; 
 
-// 3.1 Grupo Principal (Planta Procedural)
-const plantGroup = new THREE.Group();
-scene.add(plantGroup);
-
-const stemMat = new THREE.MeshStandardMaterial({ color: 0x4caf50, roughness: 0.8 });
-const leafMat = new THREE.MeshStandardMaterial({ color: 0x81c784, roughness: 0.6 });
-const flowerMat = new THREE.MeshStandardMaterial({ color: 0xff4081, roughness: 0.4 });
-const potMat = new THREE.MeshStandardMaterial({ color: 0xd84315, roughness: 0.9 });
-
-// 3.2 Maceta (Cono invertido)
-const potGeo = new THREE.ConeGeometry(1.5, 2, 32);
-const pot = new THREE.Mesh(potGeo, potMat);
-pot.rotation.x = Math.PI; 
-pot.position.set(0, 1, 0);
-pot.castShadow = true;
-pot.userData = { 
-    name: "Maceta de Arcilla", 
-    geom: "Cono (Invertido)", 
-    height: "0 a 2 unidades", 
-    desc: "Base que contiene los nutrientes y raíces." 
+// A) Suelo (Cilindro base)
+const sueloGeo = new THREE.CylinderGeometry(5, 5, 0.5, 32);
+const sueloMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); 
+const suelo = new THREE.Mesh(sueloGeo, sueloMat);
+suelo.receiveShadow = true;
+suelo.userData = { 
+    name: "Suelo Agrícola", 
+    type: "Cilindro", 
+    height: "0m", 
+    desc: "Suelo con colores rojizos simulando la tierra rica en hierro de Los Altos de Jalisco."
 };
-scene.add(pot); 
-interactableObjects.push(pot);
+scene.add(suelo);
+interactableObjects.push(suelo);
 
-// 3.3 Tallo Principal
-const stemGeo = new THREE.CylinderGeometry(0.2, 0.3, 4, 16);
-const stem = new THREE.Mesh(stemGeo, stemMat);
-stem.position.y = 4; 
-stem.castShadow = true;
-stem.userData = { 
-    name: "Tallo Principal", 
-    geom: "Cilindro", 
-    height: "2 a 6 unidades", 
-    desc: "Soporta las hojas y transporta agua." 
+// Grupo principal de la planta
+const agaveGroup = new THREE.Group();
+agaveGroup.position.y = 0.25; 
+scene.add(agaveGroup);
+
+// B) Piña (Esfera estirada)
+const pinaGeo = new THREE.SphereGeometry(1.2, 32, 32);
+pinaGeo.scale(1, 1.2, 1); 
+const pinaMat = new THREE.MeshStandardMaterial({ color: 0xdbd8a0, roughness: 0.9 });
+const pina = new THREE.Mesh(pinaGeo, pinaMat);
+pina.position.y = 1.2;
+pina.castShadow = true;
+pina.userData = { 
+    name: "Piña (Corazón)", 
+    type: "Esfera", 
+    height: "0.2m - 2.5m", 
+    desc: "Almacena la biomasa y la concentración de azúcares." 
 };
-plantGroup.add(stem);
-interactableObjects.push(stem);
+agaveGroup.add(pina);
+interactableObjects.push(pina);
 
-// Función para crear ramas con hojas
-function createBranchWithLeaf(yPos, rotationZ, leafScale) {
-    const branchGroup = new THREE.Group();
-    branchGroup.position.y = yPos;
-    branchGroup.rotation.z = rotationZ;
+// C) Quiote (Tallo floral)
+const quioteGeo = new THREE.CylinderGeometry(0.15, 0.2, 5, 16);
+quioteGeo.translate(0, 2.5, 0); 
+const quioteMat = new THREE.MeshStandardMaterial({ color: 0x7a9c59 });
+const quiote = new THREE.Mesh(quioteGeo, quioteMat);
+quiote.position.y = 2.4;
+quiote.castShadow = true;
+quiote.userData = { 
+    name: "Quiote (Tallo floral)", 
+    type: "Cilindro", 
+    height: "Hasta 5 metros", 
+    desc: "Tallo que crece rápidamente si no se realiza el desquiote."
+};
+agaveGroup.add(quiote);
+interactableObjects.push(quiote);
 
-    const branchGeo = new THREE.CylinderGeometry(0.05, 0.1, 1.5, 8);
-    const branch = new THREE.Mesh(branchGeo, stemMat);
-    branch.position.y = 0.75; 
-    branch.userData = { name: "Rama Secundaria", geom: "Cilindro", height: `${yPos} unidades`, desc: "Extensión del tallo hacia la luz." };
-    interactableObjects.push(branch);
-    branchGroup.add(branch);
+// D) Pencas (Roseta corregida y aumentada)
+const pencasGroup = new THREE.Group();
+const pencaMat = new THREE.MeshStandardMaterial({ color: 0x5a7d71 }); // Azul verdoso
 
-    const leafGeo = new THREE.SphereGeometry(0.5, 16, 16);
-    const leaf = new THREE.Mesh(leafGeo, leafMat);
-    leaf.position.y = 1.5;
-    leaf.scale.set(leafScale, leafScale, 0.2); 
-    leaf.userData = { name: "Hoja Fotosintética", geom: "Esfera (Modificada)", height: `${yPos + 1.5} unidades`, desc: "Capta la luz solar para la fotosíntesis." };
-    
-    interactableObjects.push(leaf);
-    leavesArray.push(leaf);
-    branchGroup.add(leaf);
+const capas = 5; // Aumentamos a 5 capas de hojas
+const pencasPorCapa = 12; // Más hojas por cada capa
 
-    return branchGroup;
+for (let i = 0; i < capas; i++) {
+    for (let j = 0; j < pencasPorCapa; j++) {
+        // 1. Creamos un pivote en el centro de la piña
+        const pivote = new THREE.Group();
+        
+        // 2. Rotamos el pivote como las manecillas de un reloj
+        const anguloBase = (j / pencasPorCapa) * Math.PI * 2;
+        const desfase = (i % 2) * (Math.PI / pencasPorCapa); // Intercalar capas
+        pivote.rotation.y = anguloBase + desfase;
+        
+        // Posición del pivote (las hojas más nuevas/arriba salen más alto)
+        pivote.position.y = 0.5 + (i * 0.4);
+
+        // 3. Creamos la geometría de la hoja
+        const alturaPenca = 3.5 + (i * 0.2); // Más altas las del centro
+        const pencaGeo = new THREE.ConeGeometry(0.4, alturaPenca, 5);
+        pencaGeo.translate(0, alturaPenca / 2, 0); // Mover el ancla a la base
+        
+        const penca = new THREE.Mesh(pencaGeo, pencaMat);
+        
+        // ¡TRUCO!: Aplastamos el cono en el eje Z para que parezca una hoja plana
+        penca.scale.set(1, 1, 0.15); 
+        
+        // 4. Inclinamos la hoja hacia afuera (las de abajo más caídas, las de arriba más verticales)
+        const inclinacion = (Math.PI / 2.2) - (i * 0.22);
+        penca.rotation.x = inclinacion;
+        penca.castShadow = true;
+        
+        penca.userData = {
+            name: `Penca (Capa ${i+1})`,
+            type: "Cono Modificado",
+            height: "1.5m - 3.5m",
+            desc: "Si hay sequía constante, la planta detiene su crecimiento y toma un tono rojizo."
+        };
+        
+        // Añadimos la penca al pivote, y el pivote al grupo de pencas
+        pivote.add(penca);
+        pencasGroup.add(pivote);
+        interactableObjects.push(penca); // Agregamos solo la malla al raycaster
+    }
 }
-
-stem.add(createBranchWithLeaf(0, Math.PI / 4, 1));
-stem.add(createBranchWithLeaf(1, -Math.PI / 3, 0.8));
-stem.add(createBranchWithLeaf(-1, Math.PI / 3, 1.2));
-
-// 3.4 Flor
-const flowerGeo = new THREE.SphereGeometry(0.6, 32, 32);
-const flower = new THREE.Mesh(flowerGeo, flowerMat);
-flower.position.y = 2.2; 
-flower.userData = { 
-    name: "Brote Floral", 
-    geom: "Esfera", 
-    height: "6.2 unidades", 
-    desc: "Órgano reproductor de la planta." 
-};
-interactableObjects.push(flower);
-stem.add(flower);
-
-// 3.5 Modelo Externo: Agave (.glb)
-const loader = new GLTFLoader();
-let agaveModel = null;
-
-loader.load('assets/agave.glb', (gltf) => {
-    agaveModel = gltf.scene;
-    
-    // Posicionamos el agave a un lado para que no choque con la otra planta
-    agaveModel.position.set(4, 0, 0); 
-    agaveModel.scale.set(5, 5, 5); 
-
-    agaveModel.userData = {
-        name: "Agave Americana",
-        geom: "Modelo GLB (.glb)",
-        height: "Variable",
-        desc: "Sujeto de pruebas para simulación de variables ambientales."
-    };
-
-    agaveModel.traverse((child) => {
-        if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-            child.userData = agaveModel.userData; 
-        }
-    });
-
-    scene.add(agaveModel);
-    interactableObjects.push(agaveModel); 
-    
-}, undefined, (error) => {
-    console.error("Error al cargar el agave:", error);
-});
+agaveGroup.add(pencasGroup);
 
 // ==========================================
 // 4. RAYCASTING Y PANEL DE INFORMACIÓN
@@ -160,80 +152,105 @@ const mouse = new THREE.Vector2();
 
 const infoPanel = document.getElementById('info-panel');
 const uiName = document.getElementById('info-name');
-const uiGeom = document.getElementById('info-geometry');
+const uiType = document.getElementById('info-type');
 const uiHeight = document.getElementById('info-height');
 const uiDesc = document.getElementById('info-desc');
 
-let selectedMesh = null;
-let originalEmissive = new THREE.Color();
+let selectedObject = null;
+let originalEmissive = new THREE.Color(0x000000);
 
 window.addEventListener('pointerdown', (event) => {
-    if(event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT' || event.target.closest('#controls-panel')) return;
+    if (event.target.closest('#controls-panel')) return;
 
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);
+    // Verificar intersección solo con los objetos en el arreglo
     const intersects = raycaster.intersectObjects(interactableObjects, false);
 
-    if (selectedMesh && selectedMesh.material && selectedMesh.material.emissive) {
-        selectedMesh.material.emissive.copy(originalEmissive);
-    }
-
     if (intersects.length > 0) {
-        selectedMesh = intersects[0].object;
-        
-        if (selectedMesh.material && selectedMesh.material.emissive) {
-            originalEmissive.copy(selectedMesh.material.emissive);
-            selectedMesh.material.emissive.setHex(0x333333); 
+        const hit = intersects[0].object;
+
+        if (selectedObject && selectedObject.material) {
+            selectedObject.material.emissive.copy(originalEmissive);
         }
 
-        const data = selectedMesh.userData;
-        if(data && data.name) {
+        selectedObject = hit;
+        
+        if (selectedObject.material) {
+            originalEmissive.copy(selectedObject.material.emissive);
+            selectedObject.material.emissive.setHex(0x333333); 
+        }
+
+        const data = selectedObject.userData;
+        if(data) {
             uiName.innerText = data.name;
-            uiGeom.innerText = data.geom;
+            uiType.innerText = data.type;
             uiHeight.innerText = data.height;
             uiDesc.innerText = data.desc;
             infoPanel.classList.remove('hidden');
         }
+
     } else {
-        selectedMesh = null;
+        if (selectedObject && selectedObject.material) {
+            selectedObject.material.emissive.copy(originalEmissive);
+        }
+        selectedObject = null;
         infoPanel.classList.add('hidden');
     }
 });
 
 // ==========================================
-// 5. CONTROLES HTML
+// 5. CONTROLES HTML INTERACTIVOS Y AMBIENTE
 // ==========================================
 let isAnimating = true;
 
 document.getElementById('btn-anim').addEventListener('click', (e) => {
     isAnimating = !isAnimating;
-    e.target.innerText = isAnimating ? "Pausar Animación" : "Reanudar Animación";
-});
-
-document.getElementById('btn-leaf-color').addEventListener('click', () => {
-    const randomColor = Math.random() * 0xffffff;
-    leavesArray.forEach(leaf => {
-        leaf.material = leaf.material.clone(); 
-        leaf.material.color.setHex(randomColor);
-    });
-});
-
-let leavesVisible = true;
-document.getElementById('btn-toggle-leaves').addEventListener('click', (e) => {
-    leavesVisible = !leavesVisible;
-    leavesArray.forEach(leaf => leaf.visible = leavesVisible);
-    e.target.innerText = leavesVisible ? "Ocultar Hojas" : "Mostrar Hojas";
+    e.target.innerText = isAnimating ? "Pausar Viento" : "Reanudar Viento";
 });
 
 document.getElementById('btn-camera').addEventListener('click', () => {
     camera.position.copy(initialCameraPos);
-    controls.target.set(0, 2, 0);
+    controls.target.set(0, 3, 0);
 });
 
+let sequiaActiva = false;
+document.getElementById('btn-color-leaves').addEventListener('click', () => {
+    sequiaActiva = !sequiaActiva;
+    const colorDestino = sequiaActiva ? 0xcc5533 : 0x5a7d71; 
+    
+    // Como ahora usamos pivotes (Grupos), usamos traverse para pintar solo las mallas
+    pencasGroup.traverse((child) => {
+        if (child.isMesh) {
+            child.material.color.setHex(colorDestino);
+        }
+    });
+});
+
+document.getElementById('btn-toggle-leaves').addEventListener('click', (e) => {
+    pencasGroup.visible = !pencasGroup.visible;
+    e.target.innerText = pencasGroup.visible ? "Ocultar Pencas" : "Mostrar Pencas";
+});
+
+// NUEVA LÓGICA: Slider controla luz Y color de fondo
 document.getElementById('light-slider').addEventListener('input', (e) => {
-    dirLight.intensity = parseFloat(e.target.value);
+    const val = parseFloat(e.target.value);
+    
+    // 1. Ajustar intensidad de las luces
+    dirLight.intensity = val;
+    ambientLight.intensity = val * 0.4; // Ajuste proporcional
+
+    // 2. Calcular porcentaje (0 a 1) en base al slider (rango 0 a 3)
+    const porcentajeDia = val / 3;
+
+    // 3. Mezclar colores (Lerp): Si es 0% día, es azul obscuro. Si es 100% día, es celeste.
+    const nuevoColorFondo = colorNoche.clone().lerp(colorDia, porcentajeDia);
+    
+    // 4. Aplicarlo a la escena de Three.js y al fondo del body HTML
+    scene.background = nuevoColorFondo;
+    document.body.style.backgroundColor = '#' + nuevoColorFondo.getHexString();
 });
 
 window.addEventListener('resize', () => {
@@ -243,7 +260,7 @@ window.addEventListener('resize', () => {
 });
 
 // ==========================================
-// 6. ANIMACIÓN
+// 6. ANIMACIÓN (BALANCEO POR VIENTO)
 // ==========================================
 const clock = new THREE.Clock();
 
@@ -252,13 +269,8 @@ function animate() {
 
     if (isAnimating) {
         const time = clock.getElapsedTime();
-        plantGroup.rotation.z = Math.sin(time * 0.5) * 0.05;
-        plantGroup.rotation.x = Math.cos(time * 0.3) * 0.05;
-        flower.rotation.y = time;
-        
-        if(agaveModel) {
-            agaveModel.rotation.y = time * 0.2;
-        }
+        agaveGroup.rotation.z = Math.sin(time * 0.5) * 0.02;
+        agaveGroup.rotation.x = Math.cos(time * 0.3) * 0.02;
     }
 
     controls.update();

@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laboratorio Botánico 3D</title>
+    <title>Práctica 03 - Agave Azul 3D</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Import map para cargar Three.js localmente -->
+    
+    <!-- Import Map para Three.js -->
     <script type="importmap">
         {
             "imports": {
@@ -16,25 +17,30 @@
     </script>
 </head>
 <body>
+    <!-- Panel de Controles HTML -->
+    <div id="controls-panel">
+        <h1>Simulador de Agave Azul</h1>
+        
+        <div class="control-group">
+            <button id="btn-anim">Pausar Viento</button>
+            <button id="btn-camera">Reiniciar Cámara</button>
+            <button id="btn-color-leaves">Simular Sequía (Color Pencas)</button>
+            <button id="btn-toggle-leaves">Ocultar Pencas</button>
+        </div>
+
+        <div class="control-group">
+            <label for="light-slider">Intensidad del Sol:</label>
+            <input type="range" id="light-slider" min="0" max="3" step="0.1" value="1.5">
+        </div>
+    </div>
+
     <!-- Panel de Información (Raycasting) -->
     <div id="info-panel" class="hidden">
         <h2 id="info-name">Nombre de la Parte</h2>
-        <p><strong>Geometría:</strong> <span id="info-geometry">...</span></p>
-        <p><strong>Altura:</strong> <span id="info-height">...</span></p>
-        <p><strong>Función:</strong> <span id="info-desc">...</span></p>
-    </div>
-
-    <!-- Panel de Controles HTML -->
-    <div id="controls-panel">
-        <h3>Controles del Laboratorio</h3>
-        <button id="btn-anim">Pausar Animación</button>
-        <button id="btn-leaf-color">Cambiar Color de Hojas</button>
-        <button id="btn-toggle-leaves">Ocultar Hojas</button>
-        <button id="btn-camera">Reiniciar Cámara</button>
-        
-        <div class="slider-container">
-            <label for="light-slider">Luz Principal:</label>
-            <input type="range" id="light-slider" min="0" max="3" step="0.1" value="1.5">
+        <div class="info-body">
+            <p><strong>Geometría:</strong> <span id="info-type">---</span></p>
+            <p><strong>Altura:</strong> <span id="info-height">---</span></p>
+            <p><strong>Descripción:</strong> <span id="info-desc">---</span></p>
         </div>
     </div>
 
